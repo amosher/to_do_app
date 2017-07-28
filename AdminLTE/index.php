@@ -56,6 +56,12 @@
 		try{
 			$conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
 			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			
+			$sql = "DELETE FROM list_items WHERE list_id=:id";
+			$stmt = $conn->prepare($sql);
+			$stmt->bindParam(':id', $id);
+			$stmt->execute();
+			
 			$sql = "DELETE FROM lists WHERE id=:id";
 			$stmt = $conn->prepare($sql);
 			$stmt->bindParam(':id', $id);
@@ -66,6 +72,39 @@
 			echo "Error: " . $e->getMessage();
 		}
 	}
+?>
+
+<?php
+	if(!empty($_POST['Submit_list_items'])){
+		$content_list_name = $_POST['content_list_item'];
+		$list_id = $_POST['list_id'];
+		
+		if(empty($content_list_name)){
+			echo '<script>alert ("Please insert information in the field")</script>';
+		
+		}
+		else{
+			try{
+				$conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+				$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				
+				$sql = "INSERT INTO list_items (content, status, list_id) VALUES (:content, 'uncheck', :list_id)";
+				
+				$stmt = $conn->prepare($sql);
+				$stmt->bindParam (':content', $content_list_name);
+				$stmt->bindParam (':list_id', $list_id);
+				
+				$stmt->execute();
+				
+				echo "Inserted list with id: " . $conn->lastInsertId();
+			}
+			catch(PDOException $e)
+			{
+				echo "Error:" . $e->getMessage();
+			}
+		}
+	}
+	
 ?>
 
 <?php
@@ -83,15 +122,38 @@
 	    
 	    // Execute the SQL command in the DB server. This line does the actual retrival of the data from the lists table
 	    $stmt->execute();
-
+		
+		$lists = array();
+		
 	    // For every row that was retrieved from the database execute the code in the while loop
-	    /*while($row = $stmt->fetch()){
-	        var_dump($row);
-	    }*/
+	    while($row = $stmt->fetch()){
+	        array_push($lists, $row);
+	    }
+		
+		
+		
+
 	}
 	catch(PDOException $e)
 	{
 		echo "Error: " . $e->getMessage();
+	}
+?>
+<?php
+	foreach($lists as $key => $list){
+		
+		$sql = "SELECT * FROM list_items WHERE list_id = :list_id";
+		$stmt = $conn->prepare($sql);
+		$stmt->bindParam(':list_id', $list['id']);
+		$stmt->execute();
+		
+		$list_items = array();
+		while($row = $stmt->fetch()){
+			array_push($list_items, $row);
+		}
+		
+		$lists[$key]["items"] = $list_items;
+		
 	}
 ?>
 
@@ -640,57 +702,53 @@
 
       	<div class="row">
       		<?php 
-      			 while($row = $stmt->fetch()){
+				foreach($lists as $list)
+				{
       		?>
       			<div class="col-xs-4">
       			<div class="box box-primary">
 		            <div class="box-header ui-sortable-handle" style="cursor: move;">
 		              <i class="ion ion-clipboard"></i>
 
-		              <h3 class="box-title"><?php echo $row['name'] ?></h3>
+		              <h3 class="box-title"><?php echo $list['name'] ?></h3>
 		             <form method="POST" action="index.php">
 		             	<input type="submit" value="Delete" name="delete_list_btn"><i class="fa fa-trash-o pull-right"></i>
-		             	<input type="hidden" name="list_id" value="<?php echo $row['id']?>">
+		             	<input type="hidden" name="list_id" value="<?php echo $list['id']?>">
 		             	</form>
 		            </div>
 		            <!-- /.box-header -->
 		            <div class="box-body">
 		              <ul class="todo-list ui-sortable">
-		                
-		                <li>
+		                <?php
+				foreach($list['items'] as $list_item){
+				?>
+	                      <li>
 		                      <span class="handle ui-sortable-handle">
 		                        <i class="fa fa-ellipsis-v"></i>
 		                        <i class="fa fa-ellipsis-v"></i>
 		                      </span>
 		                  <input type="checkbox" value="">
-		                  <span class="text">Make the theme responsive</span>
+		                  <span class="text"><?php echo $list_item['content'] ?></span>
 		                  <div class="tools">
 		                    <i class="fa fa-trash-o"></i>
 		                  </div>
 		                </li>
-		                <li>
-		                      <span class="handle ui-sortable-handle">
-		                        <i class="fa fa-ellipsis-v"></i>
-		                        <i class="fa fa-ellipsis-v"></i>
-		                      </span>
-		                  <input type="checkbox" value="">
-		                  <span class="text">Let theme shine like a star</span>
-		                  <div class="tools">
-		                    <i class="fa fa-trash-o"></i>
-		                  </div>
-		                </li>
+		                <?php
+				}
+					?>
 		              </ul>
 		            </div>
 		            <!-- /.box-body -->
 		            <div class="box-footer clearfix no-border">
-		            	<form class="form-horizontal">
+		            	<form class="form-horizontal" action="index.php" method="post">
 			              <div class="box-body">
 			                <div class="form-group">
 			                  <div class="col-sm-10">
-			                    <input type="email" class="form-control" id="inputEmail3" placeholder="New List Item">
+			                    <input name="content_list_item" type="text" class="form-control" id="inputEmail3" placeholder="New List Item">
+			                    <input type="hidden" name="list_id" value="<?php echo $list['id'] ?>"/>
 			                  </div>
 			                  <div class="col-sm-2">
-			                	<button type="submit" class="btn btn-info pull-right">Submt</button>
+			                	<input type="submit" class="btn btn-info pull-right" name="Submit_list_items" value="Submit"/>
 			                  </div>
 			                </div>
 			              </div>
