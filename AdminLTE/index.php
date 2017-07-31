@@ -711,10 +711,14 @@
 		              <i class="ion ion-clipboard"></i>
 
 		              <h3 class="box-title"><?php echo $list['name'] ?></h3>
-		             <form method="POST" action="index.php">
-		             	<input type="submit" value="Delete" name="delete_list_btn"><i class="fa fa-trash-o pull-right"></i>
-		             	<input type="hidden" name="list_id" value="<?php echo $list['id']?>">
-		             	</form>
+                  <div class="box-tools pull-right">
+                      <form method="POST" action="index.php">
+                        <input type="hidden" value="Delete" name="delete_list_btn">
+                        <input type="hidden" name="list_id" value="<?php echo $list['id']?>">
+                        <i onclick="$(this).parent().submit()" class="fa fa-trash-o pull-right" style="cursor: pointer;color:red"></i>
+                      </form>
+                  </div>
+		             
 		            </div>
 		            <!-- /.box-header -->
 		            <div class="box-body">
