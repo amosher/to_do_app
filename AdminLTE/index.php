@@ -708,7 +708,6 @@
 
 			              <div class="col-sm-10">
 			                <input type="text" class="form-control" id="inputPassword3" placeholder="Name" name="name">
-			                <input type="submit" value="Delete" name="delete_item_btn">
 			              </div>
 			              <div class="col-sm-10">
 			              	<span class="text-red"><?php echo $name_error ?></span>
