@@ -73,7 +73,30 @@
 		}
 	}
 ?>
-
+<?php
+	///////// In this php block we handle the deleting of a single list item
+	if(!empty($_POST['delete_item_btn'])){
+		$id = $_POST['id'];
+		try{
+			$conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			
+			$sql = "DELETE FROM list_items WHERE id=:id";
+			$stmt = $conn->prepare($sql);
+			$stmt->bindParam(':id', $id);
+			$stmt->execute();
+			
+			$sql = "DELETE FROM list_items WHERE id=:id";
+			$stmt = $conn->prepare($sql);
+			$stmt->bindParam(':id', $id);
+			$stmt->execute();
+		}
+		catch(PDOException $e)
+		{
+			echo "Error: " . $e->getMessage();
+		}
+	}
+?>
 <?php
 	if(!empty($_POST['Submit_list_items'])){
 		$content_list_name = $_POST['content_list_item'];
@@ -156,6 +179,7 @@
 		
 	}
 ?>
+
 
 <!DOCTYPE html>
 <html>
@@ -684,6 +708,7 @@
 
 			              <div class="col-sm-10">
 			                <input type="text" class="form-control" id="inputPassword3" placeholder="Name" name="name">
+			                <input type="submit" value="Delete" name="delete_item_btn">
 			              </div>
 			              <div class="col-sm-10">
 			              	<span class="text-red"><?php echo $name_error ?></span>
@@ -711,14 +736,10 @@
 		              <i class="ion ion-clipboard"></i>
 
 		              <h3 class="box-title"><?php echo $list['name'] ?></h3>
-                  <div class="box-tools pull-right">
-                      <form method="POST" action="index.php">
-                        <input type="hidden" value="Delete" name="delete_list_btn">
-                        <input type="hidden" name="list_id" value="<?php echo $list['id']?>">
-                        <i onclick="$(this).parent().submit()" class="fa fa-trash-o pull-right" style="cursor: pointer;color:red"></i>
-                      </form>
-                  </div>
-		             
+		             <form method="POST" action="index.php">
+		             	<input type="submit" value="Delete" name="delete_list_btn"><i class="fa fa-trash-o pull-right"></i>
+		             	<input type="hidden" name="list_id" value="<?php echo $list['id']?>">
+		             	</form>
 		            </div>
 		            <!-- /.box-header -->
 		            <div class="box-body">
@@ -734,7 +755,12 @@
 		                  <input type="checkbox" value="">
 		                  <span class="text"><?php echo $list_item['content'] ?></span>
 		                  <div class="tools">
-		                    <i class="fa fa-trash-o"></i>
+		                    
+		                    	<form method="post">
+		                    		<i class="fa fa-trash-o" onClick="$(this).parent().submit()"></i>
+		                    	<input type="hidden" name="delete_item_btn" value="Delete"/>
+		                    	<input type="hidden" name="id" value="<?php echo $list_item['id']?>">
+		                    	</form>
 		                  </div>
 		                </li>
 		                <?php
